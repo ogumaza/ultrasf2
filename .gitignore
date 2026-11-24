@@ -2,7 +2,7 @@
 /build-*/
 /out/
 /cmake-build-*/
-*_realsf2/
+*_ultrasf2/
 __pycache__/
 *.pyc
 .DS_Store

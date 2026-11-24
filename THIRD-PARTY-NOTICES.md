@@ -1,24 +1,27 @@
 # Third-party notices
 
-realsf2 is under the MIT licence (`LICENSE`). The libraries it builds on are under the MIT licence too. zlib, which reads
-the ZIP archives of ROM sets, is under the zlib licence.
+ultrasf2 is under the MIT licence (`LICENSE`). The code of the libraries that is compiled into ultrasf2 is under the MIT
+licence too, apart from one file of ntdlib. zlib, which reads the ZIP archives of ROM sets, and puff, the DEFLATE
+decoder in ntdlib, are under the zlib licence.
 
-| Component | Licence | Use in realsf2 |
+| Component | Licence | Use in ultrasf2 |
 |---|---|---|
-| seqlib, Copyright (c) 2026 the seqlib authors | MIT (`externals/seqlib/LICENSE`) | In `externals/seqlib`, a submodule, compiled into realsf2: the MIDI, SoundFont 2 and SFZ files and their samples. |
-| xsflib, Copyright (c) 2026 the xsflib authors | MIT (`externals/xsflib/LICENSE`) | In `externals/xsflib`, a submodule, compiled into realsf2: bounds-checked reads in either byte order, file input and output with UTF-8 paths, the printable form of names, the reader of ROM sets and their ZIP archives, the console's UTF-8 arguments and output, the Windows version resource and the macOS app's droplet script. |
-| ntdlib, Copyright (c) 2026 the ntdlib authors | MIT (`externals/ntdlib/LICENSE`) | In `externals/ntdlib`, a submodule, compiled into realsf2: the readers and models of the Nintendo 64's sound data, the conversion to MIDI, SoundFont 2 and SFZ, the per-game table, and the command line's options, help and messages. |
-| [zlib](https://zlib.net), Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler | zlib | Reads the ZIP archives of ROM sets, through xsflib. The installed copy is used if there is one, as on macOS. Otherwise v1.4 is downloaded when configuring and compiled into realsf2. |
+| seqlib, Copyright (c) 2026 the seqlib authors | MIT (`externals/seqlib/LICENSE`) | In `externals/seqlib`, a submodule, compiled into ultrasf2: the MIDI, SoundFont 2 and SFZ files and their samples. |
+| xsflib, Copyright (c) 2026 the xsflib authors | MIT (`externals/xsflib/LICENSE`) | In `externals/xsflib`, a submodule, compiled into ultrasf2: bounds-checked reads in either byte order, file input and output with UTF-8 paths, the printable form of names, the reader of ROM sets and their ZIP archives, the console's UTF-8 arguments and output, the Windows version resource and the macOS app's droplet script. |
+| ntdlib, Copyright (c) 2026 the ntdlib authors | MIT (`externals/ntdlib/LICENSE`) | In `externals/ntdlib`, a submodule, compiled into ultrasf2: the conversion layer, the command line's options, help and messages, the wave helpers and the DEFLATE decoder (puff, below). |
+| ultralib, Copyright (c) 2026 the ultralib authors | MIT (`externals/ultralib/LICENSE`) | In `externals/ultralib`, a submodule, compiled into ultrasf2: the readers and models of the Nintendo 64's sound data, the conversion to MIDI, SoundFont 2 and SFZ, and the per-game table. |
+| [zlib](https://zlib.net), Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler | zlib | Reads the ZIP archives of ROM sets, through xsflib. The installed copy is used if there is one, as on macOS. Otherwise v1.4 is downloaded when configuring and compiled into ultrasf2. |
+| puff 2.3, Copyright (C) 2002-2013 Mark Adler | zlib | In ntdlib (`src/common/inflate.cpp`), compiled into ultrasf2: the DEFLATE decoder of Gex 64's songs and GoldenEye 007's compressed sequences. puff is the reference inflate in zlib's sources (`contrib/puff`). ntdlib's copy is altered: the decoder is rewritten as a C++ class. |
 
-Binary distributions must include the MIT notices of realsf2, seqlib, xsflib and ntdlib. Shipping `LICENSE` and this
-file does that. zlib's licence requires no notice in binaries. The licence texts follow.
+Binary distributions must include the MIT notices of ultrasf2, seqlib, xsflib, ntdlib and ultralib. Shipping `LICENSE`
+and this file does that. The licences of zlib and puff require no notice in binaries. The licence texts follow.
 
 ## Console data
 
-Nothing in realsf2 licenses game data. The sound files that realsf2 reads belong to their copyright holders.
+Nothing in ultrasf2 licenses game data. The sound files that ultrasf2 reads belong to their copyright holders.
 
-ntdlib's Nintendo 64 code holds numeric tables of the games' sound engines, such as the note pitches and volume curves
-of EAD's engines. The models use the exact values to reproduce the consoles' output.
+ultralib's Nintendo 64 code contains numeric tables of the games' sound engines, such as the note pitches and volume
+curves of EAD's engines. The models use the exact values to reproduce the consoles' output.
 
 ## Licence texts
 
@@ -100,6 +103,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### ultralib
+
+```
+MIT License
+
+Copyright (c) 2026 the ultralib authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ### zlib
 
 ```
@@ -125,4 +154,29 @@ Copyright notice:
 
   Jean-loup Gailly        Mark Adler
   jloup@gzip.org          madler@alumni.caltech.edu
+```
+
+### puff
+
+```
+  Copyright (C) 2002-2013 Mark Adler, all rights reserved
+  version 2.3, 21 Jan 2013
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the author be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Mark Adler    madler@alumni.caltech.edu
 ```

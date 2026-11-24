@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: MIT
 
 # Push vX.Y.Z to publish a Windows x64 release. The tag must match the version in CMakeLists.txt.
-# Release notes come from docs/release-notes/X.Y.Z.md. The attached realsf2-X.Y.Z-win-x64.zip
-# contains realsf2.exe, README.md, LICENSE and THIRD-PARTY-NOTICES.md.
+# Release notes come from docs/release-notes/X.Y.Z.md. The attached ultrasf2-X.Y.Z-win-x64.zip
+# contains ultrasf2.exe, README.md, LICENSE and THIRD-PARTY-NOTICES.md.
 #
 # Manual runs (Actions > Release > Run workflow) upload the same ZIP as a workflow artifact without
 # publishing a release.
@@ -30,7 +30,7 @@ jobs:
       - id: version
         uses: ./externals/xsflib/ci/release-version
         with:
-          project: realsf2
+          project: ultrasf2
 
   windows:
     needs: version
@@ -45,9 +45,9 @@ jobs:
         with:
           version: ${{ needs.version.outputs.version }}
           cmake: -A x64 -T ClangCL
-          targets: realsf2
-          programs: realsf2
-          files: build/Release/realsf2.exe
+          targets: ultrasf2
+          programs: ultrasf2
+          files: build/Release/ultrasf2.exe
           artifact: win-x64
 
   package:
@@ -62,11 +62,11 @@ jobs:
 
       - uses: ./externals/xsflib/ci/package-converter
         with:
-          program: realsf2
+          program: ultrasf2
           version: ${{ needs.version.outputs.version }}
 
       - uses: ./externals/xsflib/ci/release-publish
         with:
-          title: realsf2
+          title: ultrasf2
           version: ${{ needs.version.outputs.version }}
-          artifact: realsf2-${{ needs.version.outputs.version }}
+          artifact: ultrasf2-${{ needs.version.outputs.version }}

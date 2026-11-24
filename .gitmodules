@@ -7,3 +7,6 @@
 [submodule "externals/ntdlib"]
 	path = externals/ntdlib
 	url = ../ntdlib.git
+[submodule "externals/ultralib"]
+	path = externals/ultralib
+	url = ../ultralib.git

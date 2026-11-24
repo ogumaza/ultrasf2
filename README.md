@@ -1,43 +1,47 @@
-# realsf2
+# ultrasf2
 
-realsf2 converts the music of Nintendo 64 games to MIDI, SoundFont 2 and SFZ. Each sequence gets a MIDI file and a
+ultrasf2 converts the music of Nintendo 64 games to MIDI, SoundFont 2 and SFZ. Each sequence gets a MIDI file and a
 SoundFont containing its instruments. SFZ output is written beside them.
 
-Drop images or Aleck64 ROM sets onto `realsf2.exe` on Windows or `Realsf2.app` on macOS. Output goes in a folder beside
-each one. From a terminal:
+Drop images or Aleck64 ROM sets onto `ultrasf2.exe` on Windows or `Ultrasf2.app` on macOS. Output goes in a folder
+beside each one. From a terminal:
 
 ```
-realsf2 [options] <image or set> [...]
+ultrasf2 [options] <image or set> [...]
 
   --output DIR   write to DIR (one image or set only)
   --only REGEX   convert matching sequence names (for example --only 0x19)
   --loops N      repeat the main loop N times (default 1)
                  MIDI loop markers are included for players that support them
   --seed N       initial game random state (default 0; Paper Mario only)
+  --no-resampler-filter
+                 write the waves as the game decodes them, without the
+                 low-pass that matches the console's resampler
   --list         list sequences without converting
   --quiet        print errors only
   --version      show the version
 ```
 
 An image can be in any of the usual byte orders (`.z64`, `.n64` or `.v64`). It may be in a ZIP archive, as the only
-file of the archive with one of those extensions. The default output folder is `<image name>_realsf2`, beside the
+file of the archive with one of those extensions. The default output folder is `<image name>_ultrasf2`, beside the
 image.
 
 A game of Seta's Aleck64, an arcade board built from the Nintendo 64's chips, comes as the ROM set of its board, not as
-a cartridge image. Give realsf2 the set as a ZIP archive or as a folder of its chips. realsf2 finds each chip of the
+a cartridge image. Give ultrasf2 the set as a ZIP archive or as a folder of its chips. ultrasf2 finds each chip of the
 game by its SHA-1 and size, whatever the file is called, and puts the image together from them. The output folder is
 named after the set.
 
 Each sequence gets these files:
 
 - `<name>.mid`: the sequence as a standard MIDI file.
-- `<name>.sf2`: a SoundFont that holds the sequence's instruments.
+- `<name>.sf2`: a SoundFont that contains the sequence's instruments.
 - `sfz/<name>/`: an SFZ file for each MIDI track.
 - `sfz/samples/`: the WAV samples that all of the image's SFZ files share.
 
-realsf2 recognises a game by the SHA-1 of its image. For an image that isn't in the table below, it looks for the SDK's
-sequence files and takes the largest bank. Such a conversion leaves out what the game code does to its songs. It also
-assumes an output rate of 22050 Hz. A game may use another rate.
+ultrasf2 recognises a game by the SHA-1 of its image. For an image that isn't in the table below, it looks for the SDK's
+sequence files and takes the largest bank. Such a conversion leaves out what the game code does to its songs. It
+writes the reverb sends (CC91) that the sequences set. It also assumes an output rate of 22050 Hz. A game may use
+another rate.
 
 ## Supported games
 
@@ -46,7 +50,7 @@ assumes an output rate of 22050 Hz. A game may use another rate.
 | Chameleon Twist | USA, Rev 1 | The SDK's sequence players |
 | Chameleon Twist 2 | USA | The SDK's sequence players |
 | Cruis'n World | USA | The SDK's sequence players |
-| Gex 64: Enter the Gecko | USA | The N64 Music Tools, in their early form |
+| Gex 64: Enter the Gecko | USA | The N64 Music Tools: songs in their early form, on the later player |
 | GoldenEye 007 | USA | The SDK's sequence players |
 | Hey You, Pikachu! | USA | A player of standard MIDI files, on the SDK's synthesizer |
 | Mario Kart 64 | USA | EAD's engine, middle form |
@@ -74,102 +78,117 @@ These games of the Aleck64 are supported too:
 | Vivid Dolls | The SDK's compressed sequence player |
 
 Super Real Mahjong VS plays its music in mono or in stereo. A setting in the game's service menu picks which, and the
-game plays mono until someone changes it. realsf2 converts both versions. The mono songs come first, and each stereo
-song has "(stereo)" after its name.
+game plays mono until someone changes it. ultrasf2 converts both versions. The mono songs come first, and each stereo
+song has "(set 2)" after its sequence number.
 
 Four more Aleck64 games play each song as one long recording, streamed from the cartridge: Hanabi de Doon! - Don-chan
-Puzzle, Hi Pai Paradise 2, Kurukuru Fever and Magical Tetris Challenge. They have no sequences to convert, so realsf2
+Puzzle, Hi Pai Paradise 2, Kurukuru Fever and Magical Tetris Challenge. They have no sequences to convert, so ultrasf2
 says so and writes nothing.
 
 ## Drag and drop
 
-- **Windows:** drop one or more images onto `realsf2.exe`. The console shows the results and waits for Enter before
+- **Windows:** drop one or more images onto `ultrasf2.exe`. The console shows the results and waits for Enter before
   closing.
-- **macOS:** drop images onto `Realsf2.app`, or open it to choose files. The app shows the results and can open the
+- **macOS:** drop images onto `Ultrasf2.app`, or open it to choose files. The app shows the results and can open the
   output folders. The app wraps the command-line program because Finder cannot drop files onto a bare executable. The
   [build](#building) includes the app.
 
 ## The conversion
 
-A sequence on the Nintendo 64 is a program as much as a list of notes. realsf2 runs each sequence through a performer
+A sequence on the Nintendo 64 is a program as much as a list of notes. ultrasf2 runs each sequence through a performer
 that follows the game's sound engine. The performer records the resulting notes and controllers. Each performer follows
 the engine's clock, voice rules and volume arithmetic.
 
 The game's code often changes what a sequence plays. It sets a level for each song, a tempo, a mask of channels or a
-choice between arrangements. realsf2 holds a profile for each game with what its code does there. Where a game plays a
-song in more than one way, each way gets a track of its own. The track's name says which way it is. Examples:
+choice between arrangements. ultrasf2 contains a profile of each game with what its code does there. Where a game plays
+a song in more than one way, each way gets a track of its own. The track's name gives the settings that set it apart,
+such as `Sequence 0x02 (port 2 = 1)`. Examples:
 
-- Majora's Mask plays some songs differently by the day. Fourteen of its song fanfares have another arrangement for each
-  of Link's masked forms.
-- Both Zelda games' file selects start their music without the harp's introduction.
-- Ocarina of Time plays Ganon's Tower at the level that each room sets, from the entrance to Ganondorf's lair.
-- Pokémon Stadium 2 plays three songs faster and two with other channels.
-- Paper Mario's songs hold up to four compositions. Toad Town's mix depends on where the player stands, and the areas of
-  Bowser's Castle play different tracks of its song.
-- Mario Tennis plays one of its trophy songs faster for one character.
+- Majora's Mask plays some songs differently by the day (`port 4 = 0`, `1` or `2`). Fourteen of its song fanfares have
+  another arrangement for each of Link's masked forms (`port 7 = 92`, `93` or `94`).
+- Both Zelda games' file selects start their music without the harp's introduction (`port 7 = 1`).
+- Ocarina of Time plays Ganon's Tower at the level that each room sets, from the entrance to Ganondorf's lair
+  (`volume 60` to `volume 127`).
+- Pokémon Stadium 2 plays four songs faster (`tempo +17`, for example) and two with other channels (`without channels
+  12 and 13`, for example).
+- Paper Mario's songs contain up to four compositions (`variation 1` to `variation 3`). Toad Town's mix depends on where
+  the player stands (`mix 1` to `mix 9`), and the areas of Bowser's Castle play different tracks of its song (`track
+  levels at 0x541F8`, for example).
+- Mario Tennis plays one of its trophy songs faster for one character (`tempo 142/128`).
 
 A wave's level, tuning, loop and envelope go in the SoundFont. Velocity, CC7 and CC11 act squared in SoundFont and SFZ.
-The performers write values that give the engine's level through that law. CC91 holds a channel's reverb send. Where a
-game's mixer takes a send's share from the dry level, CC11 holds that share too.
+The performers write values that give the engine's level through that law. CC91 sets a channel's reverb send. Where a
+game's mixer takes a send's share from the dry level, CC11 contains that share too.
 
 The game plays every wave through the console's resampler, whose filters cut the highest frequencies: by about 2.3 dB
-at a quarter of a wave's sample rate and 7.4 dB at half of it, averaged over its 64 filters. realsf2 writes each wave
-through a filter with that average response, so the files start out as bright as the game.
+at a quarter of a wave's sample rate and 7.4 dB at half of it, averaged over its 64 filters. ultrasf2 writes each wave
+through a filter with that average response, so the files start out as bright as the game. With
+`--no-resampler-filter`, the samples contain the waves as the game decodes them, and a player's interpolation alone cuts
+the highest frequencies.
 
 ### SoundFont
 
-SoundFont players apply 0.4 of a zone's initialAttenuation. The files take that into account: the generator holds 2.5
+SoundFont players apply 0.4 of a zone's initialAttenuation. The files take that into account: the generator contains 2.5
 times the attenuation that the specification calls for. A player that follows the specification plays such zones too
 quiet.
 
 The game's pans are written for the sin/cos law of MIDI RP-036. The specification gives the default CC10 modulator an
-amount of 1000. Every player found plays 500. Each global zone therefore holds a CC10 modulator of amount 500 in place
-of the default one.
+amount of 1000. Every player found plays 500. Each global zone therefore contains a CC10 modulator of amount 500 in
+place of the default one.
 
 A player's interpolation cuts the highest frequencies again. FluidSynth's 4-point interpolation, its default, plays the
 brightest waves about 2.5 dB quieter than the game does. Its 7th-order interpolation, which the shell command `interp 7`
 sets, comes within 0.1 dB.
 
+Gex 64, Mario Tennis, Pokémon Puzzle League, Hi Pai Paradise and Tower & Shaft keep one voice for each channel of a
+song, and Paper Mario keeps one for some of its tracks. A new note cuts the last one. Their zones share an exclusive
+class for that. The specification limits an exclusive class to the notes of one preset, and these songs change preset
+whenever a channel changes its wave, tuning or envelope. A player that follows the specification lets the last note's
+release ring on under the new note there. FluidSynth cuts the notes of a MIDI channel whatever their preset, as the
+games do.
+
 ### SFZ
 
-SFZ players ignore MIDI channels, and each file holds one instrument. Load the MIDI file in a DAW and assign an SFZ
+SFZ players ignore MIDI channels, and each file contains one instrument. Load the MIDI file in a DAW and assign an SFZ
 player to each track with its matching file. The player tested is sfizz 1.2.3.
 
-sfizz plays mono samples about 3 dB louder than the opcode documentation says. Every sample that realsf2 writes is
+sfizz plays mono samples about 3 dB louder than the opcode documentation says. Every sample that ultrasf2 writes is
 mono. The files don't correct for one player. A song therefore plays about 3 dB louder in sfizz than its SoundFont
 does in FluidSynth. sfizz has other departures from the documentation. Its decays and releases end sooner than the
 documented curve, and its filters are set up for 48 kHz until the sample rate changes after loading.
 
 ## Differences from the game
 
-- A SoundFont envelope decays in a straight line of decibels. The engines' envelopes decay in straight lines of
-  amplitude. No straight line of decibels meets such a ramp at both ends. For most games, realsf2 fits each release to
-  the energy of the game's release. For Chameleon Twist 2, GoldenEye 007 and Hey You, Pikachu!, the fit follows the top
-  20 dB of the game's ramp and leaves a tail.
-- The game's resampler picks one of its 64 filters by where it stands between two samples. realsf2 writes the average
+- A SoundFont envelope decays in a straight line of decibels. Most engines' envelopes decay in straight lines of
+  amplitude. No straight line of decibels meets such a ramp at both ends. For most games, ultrasf2 fits each such
+  release to the energy of the game's release. Chameleon Twist 2, GoldenEye 007 and Hey You, Pikachu! play on
+  libraries whose ramps are straight lines of amplitude. For them, the fit follows the top 20 dB of the game's ramp and
+  leaves a tail. The SDK's synthesizer ramps in decibels, as SoundFont does. For the other games that play on it, the
+  fit covers a typical note's fall to the synthesizer's floor.
+- The game's resampler picks one of its 64 filters by where it stands between two samples. ultrasf2 writes the average
   of their responses. A note at a wave's recorded pitch stays on one filter, and the brightest waves play up to 2.3 dB
   louder there in the game.
-- The game's reverb is left to the player. CC91 holds the send. A game's effect may sound stronger or weaker there.
-- A MIDI file holds 16 channels. A song with more, such as most of Hi Pai Paradise's, puts two of its channels on one
+- The game's reverb is left to the player. CC91 sets the send. A game's effect may sound stronger or weaker there.
+- A MIDI file has 16 channels. A song with more, such as most of Hi Pai Paradise's, puts two of its channels on one
   track. Where their notes meet, they share the track's controllers, so one of them can play at the other's level.
 - Sound effects that a song starts stay out of the song.
 - Fades that the game's code starts during play stay out.
 - A song whose tracks loop at different lengths runs to their least common multiple, up to a cut at 15 minutes.
 - Wave Race 64's sequence 0x0E has an envelope that loops on held notes, which a SoundFont can't do. Its long notes
   hold one level where the game swells them.
-- Some engines' finer effects are left out. realsf2 prints each one that a sequence uses.
+- Some engines' finer effects are left out. ultrasf2 prints each one that a sequence uses.
 
 ## Building
 
-Requires C++20 and CMake 3.20 or later. realsf2 supports macOS on Apple Silicon and Windows x64 with clang-cl.
+Requires C++20 and CMake 3.20 or later. ultrasf2 supports macOS on Apple Silicon and Windows x64 with clang-cl.
 
 - **Windows:** install Visual Studio 2022 with "Desktop development with C++", including CMake. Add the "C++ Clang tools
   for Windows" component. Use Developer PowerShell or Developer Command Prompt.
 - **macOS:** install Xcode command line tools (`xcode-select --install`) and CMake (`brew install cmake` or the
   installer from cmake.org).
 
-realsf2 builds on three libraries: seqlib, xsflib and ntdlib. The repository holds them as Git submodules in
-`externals/`. Clone it with its submodules:
+ultrasf2 builds on four libraries: seqlib, xsflib, ntdlib and ultralib. The repository contains them as Git submodules
+in `externals/`. Clone it with its submodules:
 
 ```sh
 git clone --recursive <repository URL>
@@ -187,17 +206,19 @@ ctest --test-dir build -C Release
 
 On Windows, the first command is `cmake -S . -B build -A x64 -T ClangCL`. It selects clang-cl and 64-bit output.
 
-The executable is `build/realsf2`, or `build/Release/realsf2.exe` with Visual Studio. macOS builds also produce
-`build/Realsf2.app`. The app holds a copy of the program. You can move the app elsewhere.
+The executable is `build/ultrasf2`, or `build/Release/ultrasf2.exe` with Visual Studio. macOS builds also produce
+`build/Ultrasf2.app`. The app contains a copy of the program. You can move the app elsewhere.
 
 C++ formatting uses clang-format with the repository's `.clang-format`.
 
 ## Tests
 
-`ctest` checks that the program reports its version. The conversion is in ntdlib. ntdlib's tests cover it with small
+`ctest` checks that the program reports its version. The conversion is in ultralib. ultralib's tests cover it with small
 sequences and banks built by hand, and they require no game data.
 
 ## Licence
 
-realsf2 is under the [MIT](LICENSE) licence. The libraries it builds on, seqlib, xsflib and ntdlib, are under the MIT
-licence too. `THIRD-PARTY-NOTICES.md` gives their licence texts. Game data is not covered by this licence.
+ultrasf2 is under the [MIT](LICENSE) licence. The code of the libraries it builds on, seqlib, xsflib, ntdlib and
+ultralib, is under the MIT licence too, where it goes into ultrasf2. ntdlib includes an altered copy of Mark Adler's
+puff. Builds without an installed zlib compile zlib in. Both are under the zlib licence. `THIRD-PARTY-NOTICES.md` gives
+their licence texts. Game data is not covered by this licence.

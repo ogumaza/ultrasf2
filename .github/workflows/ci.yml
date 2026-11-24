@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-# Builds realsf2 whenever main changes: on Windows x64 with clang-cl, and on macOS ARM64. The Windows job runs ctest
+# Builds ultrasf2 whenever main changes: on Windows x64 with clang-cl, and on macOS ARM64. The Windows job runs ctest
 # too. The macOS job builds without the tests (BUILD_TESTING=OFF). Changes to documentation alone don't start a run.
 name: CI
 
@@ -25,7 +25,7 @@ jobs:
           - name: Windows x64 (clang-cl)
             os: windows-2025
             cmake: -A x64 -T ClangCL
-            artifact: realsf2-windows-x64
+            artifact: ultrasf2-windows-x64
           - name: macOS ARM64 (Apple Clang)
             os: macos-15
             cmake: -DBUILD_TESTING=OFF
@@ -37,4 +37,4 @@ jobs:
         with:
           cmake: ${{ matrix.cmake }}
           artifact-name: ${{ matrix.artifact }}
-          artifact-path: build/Release/realsf2.exe
+          artifact-path: build/Release/ultrasf2.exe
